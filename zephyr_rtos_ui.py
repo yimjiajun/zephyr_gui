@@ -506,16 +506,20 @@ def run_command_download():
         prj_name = []
         prj_url = []
 
-        with open(download_file, 'r') as f:
-            lines = f.readlines()
-            # Loop through each line in the file, starting from the second row
-            for line in lines[2:]:
-                # Split the line based on the pipe symbol surrounded by spaces and strip any whitespace
-                values = [v.strip() for v in line.split('|') if v.strip()]
-                # Add the values to the respective columns
-                prj_name.append(values[0])
-                prj_url.append(values[1])
-            f.close()
+        if not os.path.exists(download_file):
+            prj_name.append("Intel Open Source EC-Firmware")
+            prj_url.append("https://github.com/intel/ecfw-zephyr")
+        else:
+            with open(download_file, 'r') as f:
+                lines = f.readlines()
+                # Loop through each line in the file, starting from the second row
+                for line in lines[2:]:
+                    # Split the line based on the pipe symbol surrounded by spaces and strip any whitespace
+                    values = [v.strip() for v in line.split('|') if v.strip()]
+                    # Add the values to the respective columns
+                    prj_name.append(values[0])
+                    prj_url.append(values[1])
+                f.close()
 
         setup_window_download()
         setup_window_download_label()
@@ -582,11 +586,13 @@ def get_support_board_to_optionmenu():
         for line in lines:
             if 'mec' in line.lower():
                 board_options.append(line.strip())
-        with open(board_file, 'r') as file:
-            for line in file:
-                if 'mec' in line.lower():
-                    board_options.append(line.strip())
-            file.close()
+
+        if os.path.exists(board_file):
+            with open(board_file, 'r') as file:
+                for line in file:
+                    if 'mec' in line.lower():
+                        board_options.append(line.strip())
+                file.close()
 
         ec_app_path = get_manifest_path()
         ec_app_path = os.path.join(ec_app_path, 'out_of_tree_boards', 'boards')
