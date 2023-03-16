@@ -1,6 +1,5 @@
 import os
 import subprocess
-import winreg
 
 
 def get_package_name():
@@ -63,6 +62,8 @@ def check_shell_command_available(cmd):
 def add_to_window_context_menu(file_path, name):
     if os.name != 'nt':
         return -1
+
+    import winreg
 
     key_path = "Directory\\Background\\shell\\" + name
     key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, key_path)
