@@ -538,6 +538,15 @@ def run_command_flash():
     output_text.see("end")
 
 
+def get_manifest_path():
+    workspace_topdir = subprocess.check_output('west topdir', shell=True, stderr=subprocess.STDOUT)
+    workspace_topdir = workspace_topdir.decode().strip()
+    manifest_path = subprocess.check_output('west config --local manifest.path', shell=True, stderr=subprocess.STDOUT)
+    manifest_path = manifest_path.decode().strip()
+    ec_app_path = os.path.join(workspace_topdir, manifest_path)
+
+    return ec_app_path
+
 def get_support_board_to_optionmenu():
     board_options = []
 
@@ -563,6 +572,14 @@ def get_support_board_to_optionmenu():
                 if 'mec' in line.lower():
                     board_options.append(line.strip())
             file.close()
+
+        ec_app_path = get_manifest_path()
+        ec_app_path = os.path.join(ec_app_path, 'out_of_tree_boards', 'boards')
+
+        for root, dirs, files in os.walk(ec_app_path):
+            for dir in dirs:
+                if 'mec' in dir:
+                    board_options.append(dir)
 
         try:
             cmd = "west config build.board"
