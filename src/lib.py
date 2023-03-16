@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 
 def get_package_name():
@@ -18,8 +19,8 @@ def search_file(target_file, search_dir):
     for dirpath, dirnames, filenames in os.walk(search_dir):
         for filename in filenames:
             if filename == target_file:
-                return os.path.abspath(dirpath)
-    return None
+                return os.path.abspath(filename)
+    return ' '
 
 
 def check_distro():
