@@ -9,11 +9,18 @@ color_fg = "white"
 font_size = 8
 font_select = "Times New Roman"
 script_dir = os.path.dirname(os.path.abspath(__file__))
-board_file = os.path.join(script_dir, 'board.txt')
-download_file = os.path.join(script_dir, 'download.txt')
 width = 600
 height = 500
 default_board_option_menu_msg = "Select Board"
+
+if os.name == 'nt':
+    home_dir = os.path.expanduser('~')
+else:
+    home_dir = os.environ['HOME']
+
+prj_conf_dir = ".eczephyr"
+board_file = os.path.join(home_dir, prj_conf_dir, 'board.txt')
+download_file = os.path.join(home_dir, prj_conf_dir, 'download.txt')
 
 def display_msg(msg, type):
     display = msg
