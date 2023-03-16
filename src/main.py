@@ -248,15 +248,31 @@ def setup_workspace_variables():
 
     return 0, workspace_topdir, ec_app_path, build_path, build_board
 
+
+def get_default_board():
+    try:
+        default_board = subprocess.check_output('west config --local build.board', shell=True, stderr=subprocess.STDOUT)
+        default_board = default_board.decode().strip()
+    except subprocess.CalledProcessError:
+        default_board = "unknow"
+
+    return default_board
+
+
 def run_command_build():
+
+    if selected_option.get() != get_default_board():
+        pristine = "--pristine"
+    else:
+        pristine = ""
 
     err, workspace_topdir, ec_app_path, build_path, build_board = setup_workspace_variables()
 
     if err:
         return -1
 
-    cmd = "west build " + "--pristine " + "--cmake " + \
-        "--build-dir " + build_path + ' ' + \
+    cmd = "west build" + ' ' + pristine + ' ' + "--cmake" + ' ' + \
+        "--build-dir" + ' ' + build_path + ' ' + \
         ec_app_path
 
     run_command(cmd)
