@@ -20,7 +20,7 @@ def search_file(target_file, search_dir):
     for dirpath, dirnames, filenames in os.walk(search_dir):
         for filename in filenames:
             if filename == target_file:
-                return os.path.abspath(filename)
+                return os.path.abspath(os.path.join(dirpath, filename))
     return ' '
 
 
