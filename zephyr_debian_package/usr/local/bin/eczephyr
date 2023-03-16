@@ -1,0 +1,43 @@
+#!/bin/bash
+
+package_name='eczephyr'
+lib_path="/usr/local/lib/${package_name}"
+maintainer="JiaJun Yim"
+maintainer_email="yimjiajun@icloud.com"
+
+function command_check {
+	local command="$1"
+
+	[ -z "$command" ] &&\
+		command="--help"
+
+	case "$command" in
+		'-h'|'--help'|'help')
+			${lib_path}/help ${command}
+			;;
+
+		'build')
+			shift
+			${lib_path}/build $@
+			;;
+
+		'install')
+			shift
+			${lib_path}/init $@
+			;;
+
+		'gui')
+			shift
+			python3 ${lib_path}/gui.py
+			;;
+
+		*)
+			echo -e "\033[1;31m'${command}' is not supported!\033[0m" >&2
+			exit 1
+			;;
+	esac
+
+	return
+}
+
+command_check $@

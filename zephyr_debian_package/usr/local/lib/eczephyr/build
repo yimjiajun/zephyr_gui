@@ -1,0 +1,358 @@
+#!/bin/bash
+
+user_variable_setup() {
+	mec_spi_gen_dir="CPGZephyrDocs"	# microchip spi generator path
+	zephyr_configuration=	# extra kconfig setup
+	zephyr_toolchain_variant='zephyr'
+	zephyr_flash_runner='dediprog' # flash programmer
+	zephyr_project_support_boards=('mec1501modular_assy6885' \
+		'mec15xxevb_assy6853' \
+		'mec172xevb_assy6906' \
+		'mec2016evb_assy6797' \
+		'mec1523_adl_p' \
+		'mec1501_adl_p' \
+		'mec1501_adl' \
+	)
+}
+
+script_variable_setup() {
+	lib_path="$(dirname $(readlink -f $0))"
+	zephyr_project_path=
+	zephyr_final_spi_image=
+	zephyr_board=
+	set_zephyr_board=
+	set_zephyr_dconfig=$zephyr_configuration
+	set_clear_build=
+	set_menu_config=
+	set_west_flash=
+	set_flash_start_addr=0x00000000
+	set_flash_pre_read_cmd=
+	flash_pre_read_file=
+}
+
+west_build() {
+	zephyr_build_path="$(west topdir)/$(west config manifest.path)/build"
+	zephyr_binary_path="$zephyr_build_path/zephyr"
+
+	[[ -z "$ZEPHYR_TOOLCHAIN_VARIANT" ]] &&\
+		export ZEPHYR_TOOLCHAIN_VARIANT="$zephyr_toolchain_variant"
+
+	[[ ! -z "$set_clear_build" ]] && [[ -d "$zephyr_build_path" ]] &&\
+		rm -rf $zephyr_build_path
+
+	if [[ ! -z "$set_menu_config" ]]; then
+		[[ ! -d "$zephyr_build_path" ]] &&\
+			west build -c --cmake-only -p=always\
+				$set_zephyr_board \
+				-d $zephyr_build_path \
+				$zephyr_project_path \
+				$set_zephyr_dconfig
+
+		west build -t menuconfig -d $zephyr_build_path
+	fi
+
+	[[ "$?" -gt 0 ]] && return 1
+
+	west build -c -p=auto \
+		$set_zephyr_board \
+		-d $zephyr_build_path \
+		$zephyr_project_path \
+		$set_zephyr_dconfig
+
+	[[ "$?" -gt 0 ]] && return 1
+
+	[[ ! -f "${zephyr_binary_path}/${zephyr_final_spi_image}" ]] &&\
+		zephyr_final_spi_image=
+
+	return 0
+}
+
+setup_mec150X() {
+	[[ -z "$EVERGLADES_SPI_GEN" ]] &&\
+		export EVERGLADES_SPI_GEN="$(west topdir)/$mec_spi_gen_dir/MEC1501/SPI_image_gen/everglades_spi_gen_lin64"
+
+	zephyr_final_spi_image="spi_image.bin"
+
+	if [[ $zephyr_board == *"evb"* ]]; then
+		set_flash_start_addr=0x100
+	else
+		set_flash_start_addr=0x1000
+	fi
+
+	if [[ $zephyr_board == *"modular_assy"* ]]; then
+			set_zephyr_dconfig="$set_zephyr_dconfig"
+	fi
+
+	return
+}
+
+setup_mec152X() {
+	[[ -z "$EVERGLADES_SPI_GEN" ]] &&\
+		export EVERGLADES_SPI_GEN="$(west topdir)/$mec_spi_gen_dir/MEC152x/SPI_image_gen/everglades_spi_gen_RomE"
+
+	zephyr_final_spi_image="spi_image.bin"
+
+	if [[ $zephyr_board == *"evb"* ]]; then
+		set_flash_start_addr=0x100
+	else
+		set_flash_start_addr=0x1000
+	fi
+
+	[[ $zephyr_board = "mec1523_adl_p" ]] &&\
+		set_zephyr_board="-b mec1501modular_assy6885" && \
+		set_zephyr_dconfig="$set_zephyr_dconfig -DDTC_OVERLAY_FILE=${zephyr_project_path}/boards/mec1523_adl_p.overlay"
+
+	if [[ $zephyr_board == *"modular_assy"* ]]; then
+			set_zephyr_dconfig="$set_zephyr_dconfig"
+	fi
+
+	return
+}
+
+setup_mec172X() {
+	[[ -z "$MEC172X_SPI_GEN" ]] &&\
+		export MEC172X_SPI_GEN="$(west topdir)/$mec_spi_gen_dir/MEC172x/SPI_image_gen/mec172x_spi_gen_lin_x86_64"
+
+	zephyr_final_spi_image="spi_image.bin"
+
+	if [[ $zephyr_board == *"evb"* ]]; then
+		set_flash_start_addr=0x100
+	else
+		set_flash_start_addr=0x1000
+	fi
+
+	if [[ $zephyr_board == *"modular_assy"* ]]; then
+			set_zephyr_dconfig="$set_zephyr_dconfig"
+	fi
+
+	return
+}
+
+flash_preprocess() {
+	case "$zephyr_flash_runner" in
+		"dediprog")
+			set_flash_pre_read_cmd="dpcmd -r ${flash_pre_read_file} -a 0 -l ${set_flash_start_addr}" # flash read from address 0 to starting address to flash
+			;;
+
+		*)
+			echo -e "\033[1;31m'$zephyr_flash_runner' flash programmer is not supporting in this project\033[0m" >&2
+			read -t 10 -p "Continue flash with '$zephyr_flash_runner'? [y|n] : "
+
+			[[ "$REPLY" != [-yY] ]] && return 1
+
+			read -t 120 -p\
+				"Enter '$zephyr_flash_runner' read command for address $(printf "0 to 0x%X" "${set_flash_start_addr}") : "
+
+			set_flash_pre_read_cmd="$REPLY"
+
+			read -t 60 -p\
+				"Enter '$zephyr_flash_runner' read to save on full path file : "
+
+			flash_pre_read_file="$REPLY"
+			;;
+	esac
+
+	return 0
+}
+
+west_flash() {
+	local orig_final_spi_image="${zephyr_binary_path}/tmp_org_${zephyr_final_spi_image}"
+	local addr_0_to_start_addr_spi_image=
+
+	flash_pre_read_file="/tmp/$(west config build.board)_spi_image.bin"
+
+	[[ -z "${zephyr_final_spi_image}" ]] ||\
+		[[ ! -f "${zephyr_binary_path}/${zephyr_final_spi_image}" ]] &&\
+		return 1
+
+	flash_preprocess
+
+	[[ "$?" -gt 0 ]] && return 1
+
+	mv ${zephyr_binary_path}/${zephyr_final_spi_image} ${orig_final_spi_image}
+
+	[[ -f "$flash_pre_read_file" ]] &&\
+		rm $flash_pre_read_file
+
+	if [[ "$set_flash_start_addr" -gt 0 ]]; then
+		$set_flash_pre_read_cmd
+
+		[[ "$?" -gt 0 ]] && return 1
+
+		addr_0_to_start_addr_spi_image="$flash_pre_read_file"
+		cat $addr_0_to_start_addr_spi_image $orig_final_spi_image > ${zephyr_binary_path}/${zephyr_final_spi_image}
+	fi
+
+	west flash -d $zephyr_build_path --skip-rebuild
+
+	mv $orig_final_spi_image ${zephyr_binary_path}/${zephyr_final_spi_image}
+	rm $addr_0_to_start_addr_spi_image
+
+	return 0
+}
+
+boards_select() {
+	local total=${#zephyr_project_support_boards[*]}
+	local mark=
+	local max_idx="$(echo $(($total - 1)))"
+
+	while [[ -z "$zephyr_board" ]]; do
+		echo -e "-----------------------------------------"
+		echo -e "EC firmware board support in this project:"
+		echo -e "-----------------------------------------"
+
+		for((i = 0; i < total; i++)); do
+			mark=
+			[[ "$(west config build.board)" == "${zephyr_project_support_boards[$i]}"* ]] &&\
+				mark='*'
+
+			printf "%2d | %c %s \n" "$i" "$mark" "${zephyr_project_support_boards[$i]}"
+		done
+
+		read -t 20 -p "Select board or 'q' to skip select [0-${max_idx}|q] : "
+
+		if [ ! -z $REPLY ]; then
+			[[ $REPLY =~ ^[0-9]+$ ]] &&\
+				zephyr_board=${zephyr_project_support_boards[$REPLY]}
+
+			[[ $REPLY = 'q' ]] &&\
+				return 0
+		fi
+	done
+
+	return 0
+}
+
+check_supporting_cmd() {
+	local sup_cmd=('-h' 'help' \
+		'-t' '--test' \
+		'-c' '--clear' \
+		'-m' '--menu' \
+		'-f' '--flash' \
+		'-b' '--boards')
+	local sup_cmd_expansion=('-D' \
+		'mec')
+
+	local len=${#sup_cmd[*]}
+
+	for((i = 0; i < len; i++)); do
+			[[ "$1" == "${sup_cmd[$i]}" ]] &&\
+				return 0
+	done
+
+	len=${#sup_cmd_expansion[*]}
+
+	for((i = 0; i < len; i++)); do
+			[[ "$1" == "${sup_cmd_expansion[$i]}"* ]] &&\
+				return 0
+	done
+
+	return 1;
+}
+
+process_input() {
+	local board_sel_opt=
+
+	while [[ "$#" -gt 0 ]]; do
+		 case "$1" in
+			 "-D"*)
+				set_zephyr_dconfig="$set_zephyr_dconfig $1"
+				;;
+			 "-h"|"help")
+				${lib_path}/help "build"
+				exit 0
+				;;
+			 "-c"|"--clear")
+				set_clear_build=y
+				;;
+			 "-m"|"--menu")
+				set_menu_config=y
+				;;
+			 "-f"|"--flash")
+				set_west_flash=y
+				;;
+			 "-t"|"--test")
+				set_zephyr_dconfig="$set_zephyr_dconfig -DCONFIG_ZTEST=y -DCONFIG_ZTEST_NEW_API=y"
+				;;
+			 "-b"|"--boards")
+				if [ "$1" = '-b' ] && [ "$#" -gt 1 ] && [[ "$2" != "-"* ]] && [[ "$2" != *'/'* ]]; then
+					zephyr_board="$2"
+					shift
+				else
+					board_sel_opt='y'
+				fi
+				;;
+			 *)
+				[ "$#" -ne 1 ] &&\
+					echo -e "\033[1;31m error\033[0m: '$1' input parameter is unrecognized" >&2 &&\
+					return 1
+
+				if [[ "$1" != '~'* ]] && [[ "$1" != '/'* ]]; then
+					zephyr_project_path="${PWD}/$1"
+				else
+					zephyr_project_path="$1"
+				fi
+				;;
+		esac
+
+		shift
+	done
+
+	if [ -z ${zephyr_project_path} ]; then
+		if [ -d "$(west topdir)/$(west config --local manifest.path)" ]; then
+			zephyr_project_path="$(west topdir)/$(west config --local manifest.path)"
+		else
+			return 1
+		fi
+	fi
+
+	[[ $board_sel_opt = 'y' ]] && boards_select
+
+	return 0
+}
+
+function board_setup {
+
+	if [ -z "$BOARD" ]; then
+		if [ ! -z "$zephyr_board" ]; then
+			set_zephyr_board="-b $zephyr_board"
+		else	# default board setup by west build.board, providing '-b' is not neccessary
+			zephyr_board="$(west config --local build.board)"
+		fi
+	else
+		echo -e "\$BOARD defined: \033[1;33m$BOARD\033[0m" >&1
+		zephyr_board="$BOARD"
+	fi
+
+	case "$zephyr_board" in
+		"mec150"*)	setup_mec150X
+								;;
+		"mec152"*)	setup_mec152X
+								;;
+		"mec172"*)	setup_mec172X
+								;;
+		*)					echo -e "\033[1;31m'$zephyr_board' is not supporting in this project\033[0m" >&2
+								read -t 10 -p "Continue build with '$zephyr_board' board? [y|n] : "
+
+								[[ "$REPLY" != [-yY] ]] &&\
+									return 1
+								;;
+	esac
+
+	return 0
+}
+
+user_variable_setup
+script_variable_setup
+process_input $@; [ "$?" -gt 0 ] && exit 1
+cd ${zephyr_project_path}
+board_setup
+
+[[ ! -z "$set_zephyr_dconfig" ]] &&\
+	set_zephyr_dconfig="-- $set_zephyr_dconfig"
+
+west_build; [ "$?" -gt 0 ] && exit 1
+
+[ ! -z $set_west_flash ] && west_flash; [[ "$?" -gt 0 ]] && exit 1
+
+exit 0

@@ -1,0 +1,124 @@
+#!/bin/bash
+
+command="$1"
+maintainer="JiaJun Yim"
+maintainer_email="yimjiajun@icloud.com"
+
+function help_display_begin {
+	cat <<-EOF
+
+		usage: eczephyr [${command}]... [OPTION]...
+
+		Nero and Richard application development base on Zephyr Project RTOS.
+		This tool for specific zephyr application projects installation and build.
+
+	EOF
+
+	return
+}
+
+function help_display_end {
+	cat <<-EOF
+		Reports bugs to ${maintainer} <${maintainer_email}>
+
+	EOF
+
+	return
+}
+
+function install_help_display {
+
+	help_display_begin
+	cat <<-EOF
+		Zephyr Application installation.
+
+		The optionals below may be used to select configuration.
+
+		OPTION:
+		    -d, --directory[=PATH]                 Path to install or update application project;
+		                                           'PATH' can be uncreated directory, which will being create an installation.
+
+		    -h, --help                             Prints help information. Use --help for more information.
+
+		    -p, --project[=NAME]                   Project name to install
+
+	EOF
+	help_display_end
+
+	return
+}
+
+function build_help_display {
+
+	help_display_begin
+	cat <<-EOF
+		Zephyr Application build.
+
+		usage: ./build.sh [OPTION]... [OPTION]...
+		   or: ./build.sh -b "BOARD"... [CONFIG]...
+		       ./build.sh ... test clear
+		       ./build.sh ... flash clear
+
+	Zephyr project RTOS west build tool, for Microchip chipset. This build process will following corresponding microchip SPI generator.
+
+	Execute build.sh should base from west top directory, which depends on .west same level directory or [west topdir] location.
+	If variable name [BOARD] being defined, any input provided board or default board will being ignored
+	No providing any input board will build as default defined board as <$default_zephyr_board>
+
+	The optionals below may be used to select configuration.
+
+	    -b, --boards                           display supporting boards in this project and provide board selection
+	    -c, --clear                            remove project 'build' directory before west build
+	    -f, --flash                            write spi image into flash after west build
+	    -m, --menu                             kconfig pre-app overlay. change kconfig value before west build
+	    -t, --test, -DCONFIG_ZTEST=y -DCONFIG_ZTEST_NEW_API=y
+	                                           enable Zephyr Test Framework (Ztest)
+	                                           - simple testing framework intended to be used during development.
+	                                           - enable the latest APIs of Ztest(legacy APIs will soon be deprecated and eventually removed)
+	    -DOVERLAY_CONFIG=debug.conf            configuration overlay for debug mode
+	    -DDTC_OVERLAY_FILE='example'.overlay   devicetree overlay
+	    -DCONFIG_EC_LOG=n                      disable CONFIG_EC_LOG to disable all logging message
+
+	EOF
+	help_display_end
+
+	return
+}
+
+function command_help_display {
+	help_display_begin
+	cat <<-EOF
+		COMMAND:
+		    build                                  Build zephyr application project
+		    install                                Install zephyr application project
+		    gui                                    GUI zephyr tools
+		    help                                   Prints help information.
+
+	EOF
+	help_display_end
+
+	return
+}
+
+function help_display_select {
+	case "$command" in
+		'install')
+			install_help_display
+			;;
+		'build')
+			build_help_display
+			;;
+		'-h'|'--help'|'help')
+			command='COMMAND'
+			command_help_display
+			;;
+		*)
+			echo -e "\033[1;31m'${command}' is not supported!\033[0m" >&2
+			exit 1
+			;;
+	esac
+
+	return
+}
+
+help_display_select
