@@ -472,8 +472,30 @@ def run_command_download():
 
 
 def run_command_menu():
-    output_text.insert(tk.END, 'coming soon...', 'notify')
-    output_text.see("end")
+    err, workspace_topdir, ec_app_path, build_path, build_board = setup_workspace_variables()
+
+    if err:
+        return -1
+
+    cmd = "west build " + "--cmake " + \
+        "--target guiconfig " + ' ' + \
+        "--board " + build_board + ' ' + \
+        "--build-dir " + build_path + ' ' + \
+        ec_app_path
+
+    err = run_command(cmd)
+
+    if err:
+        output_text.insert("end", 'Error: west kconfig menu failed !', 'error')
+        output_text.see("end")
+        return -1
+
+    cmd = "west build " + "--cmake " + \
+        "--board " + build_board + ' ' + \
+        "--build-dir " + build_path + ' ' + \
+        ec_app_path
+
+    run_command(cmd)
 
 
 def run_command_flash():
