@@ -42,3 +42,17 @@ def get_home_path():
         home_dir = os.environ['HOME']
 
     return home_dir
+
+
+def get_script_path(file):
+    file_path = os.path.realpath(file)
+    return os.path.dirname(file_path)
+
+
+def check_shell_command_available(cmd):
+    try:
+        subprocess.check_output(["which", cmd])
+    except subprocess.CalledProcessError:
+        return -1
+
+    return 0
