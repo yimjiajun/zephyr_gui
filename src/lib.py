@@ -1,6 +1,5 @@
 import os
 import subprocess
-import pkg_resources
 
 
 def get_package_name():
@@ -82,9 +81,13 @@ def add_to_window_context_menu(file_path, name):
 
 
 def check_pyintsaller_to_install():
+    if os.name == 'nt':
+        cmd = 'where'
+    else:
+        cmd = 'which'
     try:
-        pkg_resources.get_distribution('pyinstaller')
-    except pkg_resources.DistributionNotFound:
+        subprocess.check_call([cmd, 'pyinstaller'])
+    except subprocess.CalledProcessError:
         print("PyInstaller is not installed, installing now...")
         subprocess.check_call(['pip', 'install', 'pyinstaller'])
 
