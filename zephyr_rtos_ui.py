@@ -58,12 +58,30 @@ def chmod_recursive(path, mode):
         for file in files:
             os.chmod(os.path.join(root, file), mode)
 
+    return 0
+
 
 def pre_build_setup(topdir, board):
+    def zepyr_env_setup():
+        toolchain_env = 'ZEPHYR_TOOLCHAIN_VARIANT'
+        toolcain_val = 'zephyr'
+        os.environ[toolchain_env] = toolcain_val
+
+        if os.name != 'nt':
+            os.system(f'export {toolchain_env}={toolcain_val}')
+
+        output_text.insert("end", f"Success: Exported {toolchain_env}={toolcain_val}\n", 'notify')
+        output_text.see("end")
+
+        return 0
+
     def mchp_family_config(topdir, board):
         def export_spi_gen_path(env, path):
             os.environ[env] = path
-            os.system(f'export {env}={path}')
+
+            if os.name != 'nt':
+                os.system(f'export {env}={path}')
+
             output_text.insert("end", f"Success: Exported {env}={path}\n", 'notify')
             output_text.see("end")
 
@@ -150,6 +168,9 @@ def pre_build_setup(topdir, board):
                 return -1
 
         return 0
+
+    if zepyr_env_setup():
+        return -1
 
     if re.compile('[mec]').match(board):
         output_text.insert("end", "Board is MEC family!\n", 'info')
