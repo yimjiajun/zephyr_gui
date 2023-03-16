@@ -6,8 +6,9 @@ package_name = src.lib.get_package_name()
 
 
 def create_deb_package():
+    script_path = src.lib.get_script_path(__file__)
     deb_pkg = package_name + '.deb'
-    deb_pkg_dir = src.lib.search_directory('DEBIAN', os.getcwd())
+    deb_pkg_dir = src.lib.search_directory('DEBIAN', script_path)
 
     try:
         print(f"Building debian package: {deb_pkg} ...")
@@ -33,7 +34,9 @@ def create_execute_file(os_type):
     tool = "pyinstaller"
     args = "--onefile --windowed --log-level=ERROR"
     exe_name = "--name" + ' ' + package_name
-    cmd = str(tool + ' ' + args + ' ' + exe_name + ' ' + src_file)
+    exe_dir = os.path.join(script_dir, 'dist')
+    exe_path = "--distpath" + ' ' + exe_dir
+    cmd = str(tool + ' ' + args + ' ' + exe_name + ' ' + exe_path + ' ' + src_file)
 
     if wsl_system:
         cmd = f"powershell.exe -c \"{cmd}\""
