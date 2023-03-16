@@ -3,6 +3,7 @@ import subprocess
 import os
 import re
 import glob
+import shutil
 
 color_bg = "black"
 color_fg = "white"
@@ -559,9 +560,228 @@ def run_command_menu():
     run_command(cmd)
 
 
+def find_bin_files(directory, bin_files):
+    bin = ' '
+
+    for root, dirs, files in os.walk(directory):
+        for filename in files:
+            if filename in bin_files:
+                bin = os.path.join(root, filename)
+                break
+    return bin
+
+def merge_bin(src1_bin, src2_bin, target_path):
+    if not os.path.exists(src1_bin) or not os.path.exists(src2_bin):
+        return -1, ' '
+
+    target_bin = os.path.join(target_path, 'combined.bin')
+
+    if os.path.exists(target_bin):
+        os.remove(target_bin)
+
+    with open(src1_bin, 'rb') as file1, open(src2_bin, 'rb') as file2:
+        contents1 = file1.read()
+        contents2 = file2.read()
+
+    with open(target_bin, 'wb') as file1:
+        file1.write(contents1 + contents2)
+
+    return 0, target_bin
+
 def run_command_flash():
-    output_text.insert(tk.END, 'comming soon...', 'notify')
+    def get_rom_addr(board):
+        def mec172x_family(board):
+            flash_bin = ['kcs.bin', 'spi_gen.bin']
+            if 'evb' in board:
+                addr = 0
+            else:
+                addr = 0x1000
+
+            return addr, flash_bin
+
+        def mec170x_family(board):
+            flash_bin = ['kcs.bin', 'spi_gen.bin']
+            if 'evb' in board:
+                addr = 0
+            else:
+                addr = 0x1000
+
+            return addr, flash_bin
+
+        def mec152x_family(board):
+            flash_bin = ['kcs.bin', 'spi_gen.bin']
+            if 'evb' in board:
+                addr = 0
+            else:
+                addr = 0x1000
+
+            return addr, flash_bin
+
+        def mec150x_family(board):
+            flash_bin = ['kcs.bin', 'spi_gen.bin']
+            if 'evb' in board:
+                addr = 0
+            else:
+                addr = 0x1000
+
+            return addr, flash_bin
+
+
+        chip_series = ["mec172", "mec150", "mec152", "mec170"]
+        addr = -1
+        flash_bin = 'zephyr.bin'
+
+        matches = [pattern for pattern in
+                   chip_series
+                   if pattern in board]
+        # Perform independent actions for each match found
+        for match in matches:
+            if match == "mec172":
+                addr, flash_bin = mec172x_family(board)
+                break
+            elif match == "mec150":
+                addr, flash_bin = mec150x_family(board)
+                break
+            elif match == "mec152":
+                addr, flash_bin = mec152x_family(board)
+                break
+            elif match == "mec170":
+                addr, flash_bin = mec170x_family(board)
+                break
+            else:
+                output_text.insert("end", "Fatal Error: Board Not Found in match !\n", 'error')
+                output_text.see("end")
+                return -1, ' '
+
+        return addr, flash_bin
+
+    def flash_rom(tool, addr, build_path, flash_bin):
+        def read_flash(tool, size, build_path):
+            bin = selected_option.get() + '.bin'
+            read_bin = os.path.join(build_path, bin)
+            err = -1
+
+            if os.path.exists(read_bin):
+                os.remove(read_bin)
+
+            if tool == 'dediprog':
+                if os.name == 'nt':
+                    tool = 'dpcmd.exe'
+                else:
+                    tool = 'dpcmd'
+
+                cmd = tool + " -r " + read_bin + " -s " + str(size)
+                err = run_command(cmd)
+            else:
+                read_bin = ' '
+
+            if err:
+                output_text.insert("end", 'Error: Flash Read Failed !', 'error')
+                output_text.see("end")
+
+            return err, read_bin
+
+        def write_flash(tool, bin, build_path):
+            if not os.path.exists(bin):
+                return -1
+
+            cmd = 'west flash' +  ' --skip-rebuild ' + \
+                ' --build-dir ' + build_path + \
+                ' --runner ' + tool
+
+            err = run_command(cmd)
+
+            if err:
+                return -1
+
+        start_addr = 0
+        read_size = 0
+        read_bin = ' '
+
+        if addr != start_addr:
+            read_size = addr - start_addr
+
+        if read_size > 0:
+            err, read_bin = read_flash(tool, read_size, build_path)
+            if err or not os.path.exists(read_bin):
+                return -1
+
+        bin = find_bin_files(build_path, flash_bin)
+
+        if bin == ' ':
+            output_text.insert("end", 'Error: No Binary File Found !', 'error')
+            output_text.see("end")
+            return -1
+
+        bk_bin = bin + '~'
+
+        if os.path.exists(bk_bin):
+            os.remove(bk_bin)
+
+        shutil.copy(bin, bk_bin)
+
+        if read_size > 0:
+            if not os.path.exists(read_bin):
+                return -1
+
+            err, bin = merge_bin(read_bin, bin, build_path)
+
+            if err:
+                return -1
+
+        output_text.insert("end", f'Write flash bin : {bin}\n', 'notify')
+        output_text.see("end")
+
+        err = write_flash(tool, bin, build_path)
+
+        if os.path.exists(bk_bin) and os.path.exists(bin):
+            os.remove(bin)
+            shutil.copy(bk_bin, bin)
+        if err:
+            return -1
+
+        output_text.insert("end", f'Success: Flash to ROM address : {addr}', 'notify')
+        output_text.see("end")
+
+        return 0
+
+    err, workspace_topdir, ec_app_path, build_path, build_board = setup_workspace_variables()
+
+    if err:
+        return -1
+
+    output_text.insert("end", 'Processing flash ....\n', 'info')
     output_text.see("end")
+
+    rom_addr, flash_bin = get_rom_addr(build_board)
+
+    output_text.insert("end", f'Board = {build_board}\n', 'info')
+    output_text.insert("end", f'Flash Address = {rom_addr}\n', 'info')
+    output_text.insert("end", f'Flash Supported bin = {flash_bin}\n', 'info')
+    output_text.see("end")
+
+    if rom_addr < 0 or not flash_bin:
+        output_text.insert("end", f'Error: Exit flash processing ... !\n', 'error')
+        output_text.see("end")
+        return -1
+
+    output_text.insert("end", '> start flash ....\n', 'info')
+    output_text.see("end")
+
+    err = flash_rom('dediprog', rom_addr, build_path, flash_bin)
+
+    output_text.insert("end", '< end flash ....\n', 'info')
+    output_text.see("end")
+
+    if err:
+        output_text.insert("end", 'Error: Flash to ROM Failed !', 'error')
+        output_text.see("end")
+        return -1
+
+    output_text.insert("end", 'Finish Flash !\n', 'notify')
+    output_text.see("end")
+
+    return 0
 
 
 def get_manifest_path():
