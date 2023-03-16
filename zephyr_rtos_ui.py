@@ -84,26 +84,32 @@ def pre_build_setup(topdir, board):
 
             output_text.insert("end", f"Success: Exported {env}={path}\n", 'notify')
             output_text.see("end")
+            return 0
 
         def mec172x_family(board):
             path = os.path.join(mchp_spi_gen_path,
-                                'MEC172X',
+                                'MEC172x',
                                 'SPI_image_gen',
                                 'mec172x_spi_gen_lin_x86_64')
             export_spi_gen_path('MEC172X_SPI_GEN', path)
-
-            return 0
+            return 0, board
 
         def mec170x_family(board):
-            return -1
+            return -1, board
 
         def mec152x_family(board):
+            def board_wrapper(board):
+                if board.startswith('mec1523'):
+                    board = 'mec1501' + board[7:]
+                return board
+
             path = os.path.join(mchp_spi_gen_path,
-                                'MEC152X',
+                                'MEC152x',
                                 'SPI_image_gen',
                                 'everglades_spi_gen_RomE')
             export_spi_gen_path('EVERGLADES_SPI_GEN', path)
-            return 0
+
+            return 0, board_wrapper(board)
 
         def mec150x_family(board):
             path = os.path.join(mchp_spi_gen_path,
@@ -111,7 +117,7 @@ def pre_build_setup(topdir, board):
                                 'SPI_image_gen',
                                 'everglades_spi_gen_lin64')
             export_spi_gen_path('EVERGLADES_SPI_GEN', path)
-            return 0
+            return 0, board
 
         mchp_spi_gen_dir = 'CPGZephyrDocs'
         mchp_spi_gen_path = os.path.join(topdir, mchp_spi_gen_dir)
@@ -151,21 +157,32 @@ def pre_build_setup(topdir, board):
         # Perform independent actions for each match found
         for match in matches:
             if match == "mec172":
-                mec172x_family(board)
+                err, board = mec172x_family(board)
+                if err:
+                    return -1
                 break
             elif match == "mec150":
-                mec150x_family(board)
+                err, board = mec150x_family(board)
+                if err:
+                    return -1
                 break
             elif match == "mec152":
-                mec152x_family(board)
+                err, board = mec152x_family(board)
+                if err:
+                    return -1
                 break
             elif match == "mec170":
-                mec170x_family(board)
+                err, board = mec170x_family(board)
+                if err:
+                    return -1
                 break
             else:
                 output_text.insert("end", "Fatal Error: Board Not Found in match !\n", 'error')
                 output_text.see("end")
                 return -1
+
+        cmd = "west config --local" + " build.board " + board
+        run_command(cmd)
 
         return 0
 
@@ -216,7 +233,6 @@ def run_command_build():
         return -1
 
     cmd = "west build " + "--pristine " + "--cmake " + \
-        "--board " + build_board + ' ' + \
         "--build-dir " + build_path + ' ' + \
         ec_app_path
 
@@ -500,7 +516,6 @@ def run_command_menu():
 
     cmd = "west build " + "--cmake " + \
         "--target guiconfig " + ' ' + \
-        "--board " + build_board + ' ' + \
         "--build-dir " + build_path + ' ' + \
         ec_app_path
 
@@ -512,7 +527,6 @@ def run_command_menu():
         return -1
 
     cmd = "west build " + "--cmake " + \
-        "--board " + build_board + ' ' + \
         "--build-dir " + build_path + ' ' + \
         ec_app_path
 
