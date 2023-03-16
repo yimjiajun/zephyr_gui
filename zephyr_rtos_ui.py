@@ -87,10 +87,15 @@ def pre_build_setup(topdir, board):
             return 0
 
         def mec172x_family(board):
+            if os.name == 'nt':
+                spi_gen = 'mec172x_spi_gen_win.exe'
+            else:
+                spi_gen = 'mec172x_spi_gen_lin_x86_64'
+
             path = os.path.join(mchp_spi_gen_path,
                                 'MEC172x',
                                 'SPI_image_gen',
-                                'mec172x_spi_gen_lin_x86_64')
+                                spi_gen)
             export_spi_gen_path('MEC172X_SPI_GEN', path)
             return 0, board
 
@@ -103,19 +108,29 @@ def pre_build_setup(topdir, board):
                     board = 'mec1501' + board[7:]
                 return board
 
+            if os.name == 'nt':
+                spi_gen = 'everglades_spi_gen_RomE.exe'
+            else:
+                spi_gen = 'everglades_spi_gen_RomE'
+
             path = os.path.join(mchp_spi_gen_path,
                                 'MEC152x',
                                 'SPI_image_gen',
-                                'everglades_spi_gen_RomE')
+                                spi_gen)
             export_spi_gen_path('EVERGLADES_SPI_GEN', path)
 
             return 0, board_wrapper(board)
 
         def mec150x_family(board):
+            if os.name == 'nt':
+                spi_gen = 'everglades_spi_gen.exe'
+            else:
+                spi_gen = 'everglades_spi_gen_lin64'
+
             path = os.path.join(mchp_spi_gen_path,
                                 'MEC1501',
                                 'SPI_image_gen',
-                                'everglades_spi_gen_lin64')
+                                spi_gen)
             export_spi_gen_path('EVERGLADES_SPI_GEN', path)
             return 0, board
 
