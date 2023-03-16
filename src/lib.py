@@ -1,5 +1,6 @@
 import os
 import subprocess
+import pkg_resources
 
 
 def get_package_name():
@@ -76,5 +77,15 @@ def add_to_window_context_menu(file_path, name):
     winreg.SetValueEx(command_key, "", 0, winreg.REG_SZ, f"\"{file_path}\"")
     # close the registry key
     winreg.CloseKey(key)
+
+    return 0
+
+
+def check_pyintsaller_to_install():
+    try:
+        pkg_resources.get_distribution('pyinstaller')
+    except pkg_resources.DistributionNotFound:
+        print("PyInstaller is not installed, installing now...")
+        subprocess.check_call(['pip', 'install', 'pyinstaller'])
 
     return 0

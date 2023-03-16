@@ -74,6 +74,8 @@ def main():
 
         return create_execute_file('nt')
 
+    src.lib.check_pyintsaller_to_install()
+
     if os.name != 'nt':
         unix_system_build_execute_file()
 
