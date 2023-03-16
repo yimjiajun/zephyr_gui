@@ -38,7 +38,7 @@ def install_execute_file(os_type):
         if program_path == ' ':
             return -1
 
-        if add_to_context_menu(program_path, program_name):
+        if src.lib.add_to_window_context_menu(program_path, program_name):
             print(f"Error: {os.path.basename(program_path)} not added to context menu.")
             return -1
 

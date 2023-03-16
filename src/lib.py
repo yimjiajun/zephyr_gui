@@ -64,30 +64,16 @@ def add_to_window_context_menu(file_path, name):
     if os.name != 'nt':
         return -1
 
-    # key_path = r"Directory\\Background\\shell\\MyApp"
-    # key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, key_path)
-    # winreg.SetValueEx(key, "", 0, winreg.REG_SZ, "Open with MyApp")
-    # command_key = winreg.CreateKey(key, "command")
-    # winreg.SetValueEx(command_key, "", 0, winreg.REG_SZ, f"\"{file_path}\"")
-    # get the file extension and create a key for it
-    file_ext = os.path.splitext(file_path)[1]
-    key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, file_ext)
-
-    # create a subkey for the file type
-    sub_key = winreg.CreateKey(key, "shell")
-
-    # create a subkey for the menu item
-    menu_key = winreg.CreateKey(sub_key, name)
-
-    # set the command to run when the menu item is clicked
-    winreg.SetValueEx(menu_key, "", 0, winreg.REG_SZ, f'"{file_path}"')
+    key_path = "Directory\\Background\\shell\\" + name
+    key = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, key_path)
 
     # set the icon to display for the menu item
-    winreg.SetValueEx(menu_key, "Icon", 0, winreg.REG_SZ, f'"{file_path}"')
+    icon = f'"{file_path}"'
+    winreg.SetValueEx(key, "Icon", 0, winreg.REG_SZ, icon)
 
-    # close the registry keys
-    winreg.CloseKey(menu_key)
-    winreg.CloseKey(sub_key)
+    command_key = winreg.CreateKey(key, "command")
+    winreg.SetValueEx(command_key, "", 0, winreg.REG_SZ, f"\"{file_path}\"")
+    # close the registry key
     winreg.CloseKey(key)
 
     return 0
