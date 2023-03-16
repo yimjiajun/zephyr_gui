@@ -60,10 +60,10 @@ def run_command_build():
     def pre_build_setup(topdir, board):
         def mchp_family_config(topdir, board):
             def export_spi_gen_path(env, path):
-                # Set an environment variable
                 os.environ[env] = path
-                # Export the environment variable
                 os.system(f'export {env}={path}')
+                output_text.insert("end", f"Success: Exported {env}={path}\n", 'notify')
+                output_text.see("end")
 
             def mec172x_family(board):
                 path = os.path.join(mchp_spi_gen_path,
