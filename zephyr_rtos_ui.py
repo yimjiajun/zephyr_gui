@@ -48,6 +48,9 @@ def run_command(cmd):
 
 
 def chmod_recursive(path, mode):
+    if os.name == 'nt':  # Windows OS
+        return 0  # No need to change the permission
+
     os.chmod(path, mode)
     for root, dirs, files in os.walk(path):
         for dir in dirs:
