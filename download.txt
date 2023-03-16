@@ -1,0 +1,4 @@
+| Project Name | Project Link |
+| ------------ | ------------ |
+| Intel Open EC FW | https://github.com/intel/ecfw-zephyr |
+| Intel Open EC FW | https://github.com/intel/ecfw-zephyr |
