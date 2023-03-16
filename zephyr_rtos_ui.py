@@ -59,108 +59,109 @@ def chmod_recursive(path, mode):
             os.chmod(os.path.join(root, file), mode)
 
 
-def run_command_build():
-    def pre_build_setup(topdir, board):
-        def mchp_family_config(topdir, board):
-            def export_spi_gen_path(env, path):
-                os.environ[env] = path
-                os.system(f'export {env}={path}')
-                output_text.insert("end", f"Success: Exported {env}={path}\n", 'notify')
-                output_text.see("end")
+def pre_build_setup(topdir, board):
+    def mchp_family_config(topdir, board):
+        def export_spi_gen_path(env, path):
+            os.environ[env] = path
+            os.system(f'export {env}={path}')
+            output_text.insert("end", f"Success: Exported {env}={path}\n", 'notify')
+            output_text.see("end")
 
-            def mec172x_family(board):
-                path = os.path.join(mchp_spi_gen_path,
-                                    'MEC172X',
-                                    'SPI_image_gen',
-                                    'mec172x_spi_gen_lin_x86_64')
-                export_spi_gen_path('MEC172X_SPI_GEN', path)
-
-                return 0
-
-            def mec170x_family(board):
-                return -1
-
-            def mec152x_family(board):
-                path = os.path.join(mchp_spi_gen_path,
-                                    'MEC152X',
-                                    'SPI_image_gen',
-                                    'everglades_spi_gen_RomE')
-                export_spi_gen_path('EVERGLADES_SPI_GEN', path)
-                return 0
-
-            def mec150x_family(board):
-                path = os.path.join(mchp_spi_gen_path,
-                                    'MEC1501',
-                                    'SPI_image_gen',
-                                    'everglades_spi_gen_lin64')
-                export_spi_gen_path('EVERGLADES_SPI_GEN', path)
-                return 0
-
-            mchp_spi_gen_dir = 'CPGZephyrDocs'
-            mchp_spi_gen_path = os.path.join(topdir, mchp_spi_gen_dir)
-            mchp_spi_gen_url = 'https://github.com/MicrochipTech/CPGZephyrDocs.git'
-            mchp_series = ["mec172", "mec150", "mec152", "mec170"]
-
-            if not os.path.exists(mchp_spi_gen_path):
-                output_text.insert("end", "Download Microchip SPI generator ...\n", 'info')
-                output_text.see("end")
-                cmd = "git clone " + mchp_spi_gen_url + ' --depth=1 ' + mchp_spi_gen_path
-                run_command(cmd)
-                # if run_command(cmd) != 0:
-                #     output_text.insert("end", "Failed: Downloaded Microchip SPI generator\n", 'error')
-                #     output_text.see("end")
-                #     return -1
-                # Search for the directory named "SPI_image_gen"
-                output_text.insert("end", "Success: Downloaded Microchip SPI generator\n", 'notify')
-                output_text.see("end")
-
-                output_text.insert("end", "Change to execute mode\n", 'info')
-                output_text.see("end")
-                chmod_recursive(mchp_spi_gen_path, 0o755)
-                # for root, dirs, files in os.walk(mchp_spi_gen_path):
-                #     if "SPI_image_gen" in dirs:
-                #         spi_dir = os.path.join(root, "SPI_image_gen")
-                #         # Search for files whose names contain "spi_gen" and set execute permission on them
-                #         for file in spi_dir:
-                #             print(f'file = {file}')
-                #             if "spi_gen" in file:
-                #                 filepath = os.path.join(root, file)
-                #                 print(filepath)
-                #                 os.chmod(filepath, 0o755)
-            # Search for matches with any of the patterns
-            matches = [pattern for pattern in
-                       mchp_series
-                       if pattern in board]
-            # Perform independent actions for each match found
-            for match in matches:
-                if match == "mec172":
-                    mec172x_family(board)
-                    break
-                elif match == "mec150":
-                    mec150x_family(board)
-                    break
-                elif match == "mec152":
-                    mec152x_family(board)
-                    break
-                elif match == "mec170":
-                    mec170x_family(board)
-                    break
-                else:
-                    output_text.insert("end", "Fatal Error: Board Not Found in match !\n", 'error')
-                    output_text.see("end")
-                    return -1
+        def mec172x_family(board):
+            path = os.path.join(mchp_spi_gen_path,
+                                'MEC172X',
+                                'SPI_image_gen',
+                                'mec172x_spi_gen_lin_x86_64')
+            export_spi_gen_path('MEC172X_SPI_GEN', path)
 
             return 0
 
-        if re.compile('[mec]').match(board):
-            output_text.insert("end", "Board is MEC family!\n", 'info')
-            output_text.see("end")
-            return mchp_family_config(topdir, board)
-        else:
-            output_text.insert("end", "Error: Board is not MEC family!\n", 'error')
-            output_text.see("end")
+        def mec170x_family(board):
             return -1
 
+        def mec152x_family(board):
+            path = os.path.join(mchp_spi_gen_path,
+                                'MEC152X',
+                                'SPI_image_gen',
+                                'everglades_spi_gen_RomE')
+            export_spi_gen_path('EVERGLADES_SPI_GEN', path)
+            return 0
+
+        def mec150x_family(board):
+            path = os.path.join(mchp_spi_gen_path,
+                                'MEC1501',
+                                'SPI_image_gen',
+                                'everglades_spi_gen_lin64')
+            export_spi_gen_path('EVERGLADES_SPI_GEN', path)
+            return 0
+
+        mchp_spi_gen_dir = 'CPGZephyrDocs'
+        mchp_spi_gen_path = os.path.join(topdir, mchp_spi_gen_dir)
+        mchp_spi_gen_url = 'https://github.com/MicrochipTech/CPGZephyrDocs.git'
+        mchp_series = ["mec172", "mec150", "mec152", "mec170"]
+
+        if not os.path.exists(mchp_spi_gen_path):
+            output_text.insert("end", "Download Microchip SPI generator ...\n", 'info')
+            output_text.see("end")
+            cmd = "git clone " + mchp_spi_gen_url + ' --depth=1 ' + mchp_spi_gen_path
+            run_command(cmd)
+            # if run_command(cmd) != 0:
+            #     output_text.insert("end", "Failed: Downloaded Microchip SPI generator\n", 'error')
+            #     output_text.see("end")
+            #     return -1
+            # Search for the directory named "SPI_image_gen"
+            output_text.insert("end", "Success: Downloaded Microchip SPI generator\n", 'notify')
+            output_text.see("end")
+
+            output_text.insert("end", "Change to execute mode\n", 'info')
+            output_text.see("end")
+            chmod_recursive(mchp_spi_gen_path, 0o755)
+            # for root, dirs, files in os.walk(mchp_spi_gen_path):
+            #     if "SPI_image_gen" in dirs:
+            #         spi_dir = os.path.join(root, "SPI_image_gen")
+            #         # Search for files whose names contain "spi_gen" and set execute permission on them
+            #         for file in spi_dir:
+            #             print(f'file = {file}')
+            #             if "spi_gen" in file:
+            #                 filepath = os.path.join(root, file)
+            #                 print(filepath)
+            #                 os.chmod(filepath, 0o755)
+        # Search for matches with any of the patterns
+        matches = [pattern for pattern in
+                   mchp_series
+                   if pattern in board]
+        # Perform independent actions for each match found
+        for match in matches:
+            if match == "mec172":
+                mec172x_family(board)
+                break
+            elif match == "mec150":
+                mec150x_family(board)
+                break
+            elif match == "mec152":
+                mec152x_family(board)
+                break
+            elif match == "mec170":
+                mec170x_family(board)
+                break
+            else:
+                output_text.insert("end", "Fatal Error: Board Not Found in match !\n", 'error')
+                output_text.see("end")
+                return -1
+
+        return 0
+
+    if re.compile('[mec]').match(board):
+        output_text.insert("end", "Board is MEC family!\n", 'info')
+        output_text.see("end")
+        return mchp_family_config(topdir, board)
+    else:
+        output_text.insert("end", "Error: Board is not MEC family!\n", 'error')
+        output_text.see("end")
+
+    return -1
+
+def setup_workspace_variables():
     workspace_topdir = subprocess.check_output('west topdir', shell=True, stderr=subprocess.STDOUT)
     workspace_topdir = workspace_topdir.decode().strip()
     manifest_path = subprocess.check_output('west config --local manifest.path', shell=True, stderr=subprocess.STDOUT)
@@ -182,6 +183,15 @@ def run_command_build():
     if pre_build_setup(workspace_topdir, build_board) != 0:
         output_text.insert("end", "Error: Board not supported !\n", 'error')
         output_text.see("end")
+        return -1
+
+    return 0, workspace_topdir, ec_app_path, build_path, build_board
+
+def run_command_build():
+
+    err, workspace_topdir, ec_app_path, build_path, build_board = setup_workspace_variables()
+
+    if err:
         return -1
 
     cmd = "west build " + "--pristine " + "--cmake " + \
