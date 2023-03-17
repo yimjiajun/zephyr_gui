@@ -12,45 +12,45 @@ Zephyr RTOS project requirement tools should been installed
 
 1. Build source becomes debian package or executable file:
 
-  - unix:
+    - unix:
 
-      ```bash
-      python3 build.py
-      ```
+        ```bash
+        python3 build.py
+        ```
 
-  - window: (or by mouse click)
+    - window: (or by mouse click)
 
-      ```powershell
-      python3 build.py
-      ```
-  `eczpehyr.deb`, `dist/eczephyr`, `dist/eczephyr.exe` been generated after success build.
+        ```powershell
+        python3 build.py
+        ```
+    `eczpehyr.deb`, `dist/eczephyr`, `dist/eczephyr.exe` been generated after success build.
 
-  * _`eczephyr.deb` and `dist/eczephyr`: not generated in MS-DOS._
+      * _`eczephyr.deb` and `dist/eczephyr`: not generated in MS-DOS._
 
-  * _`dist/eczephyr.exe`: will generated in **WSL**_
+      * _`dist/eczephyr.exe`: will generated in **WSL**_
 
 2. Install debian package (Linux) or executable file (Window):
 
-  - unix:
+    - unix:
 
-      ```bash
-      python3 install.py
-      ```
+        ```bash
+        python3 install.py
+        ```
 
-  - window: (or mouse click)
+    - window: (or mouse click)
 
-      ```powershell
-      python3 install.py
-      ```
+        ```powershell
+        python3 install.py
+        ```
 3. Process zephyr GUI:
 
-  - unix:
+    - unix:
 
-      ```bash
-      eczephyr gui
-      ```
-  - window:
+        ```bash
+        eczephyr gui
+        ```
+    - window:
 
-    1. right-click mouse button
+      1. right-click mouse button
 
-    2. select `eczephyr`
+      2. select `eczephyr`
