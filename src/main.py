@@ -685,8 +685,7 @@ def run_command_flash():
                     tool = 'dpcmd.exe'
                 else:
                     tool = 'dpcmd'
-
-                cmd = tool + " -r " + read_bin + " -s " + str(size)
+                cmd = tool + " -r " + read_bin + ' ' + "-a 0" + ' ' + "-l" + ' ' + str(size)
                 err = run_command(cmd)
             else:
                 read_bin = ' '
