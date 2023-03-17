@@ -54,3 +54,5 @@ Zephyr RTOS project requirement tools should been installed
       1. right-click mouse button
 
       2. select `eczephyr`
+
+        <img src="https://raw.githubusercontent.com/wiki/yimjiajun/zephyr_gui/image/eczephyr_cortext_menu.jpg" alt="eczephyr context menu display image" width="200"/>
