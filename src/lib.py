@@ -92,3 +92,12 @@ def check_pyintsaller_to_install():
         subprocess.check_call(['pip', 'install', 'pyinstaller'])
 
     return 0
+
+
+def export_env(env, val):
+    os.environ[env] = val
+
+    if os.name != 'nt':
+        os.system(f'export {env}={val}')
+
+    return 0

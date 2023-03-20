@@ -4,6 +4,7 @@ import os
 import re
 import glob
 import shutil
+import lib
 
 color_bg = "black"
 color_fg = "white"
@@ -214,6 +215,8 @@ def pre_build_setup(topdir, board):
 
     if re.compile('[mec]').match(board):
         output_text.insert("end", "Board is MEC family!\n", 'info')
+        if lib.export_env('SPI_IMAGE_NAME', 'spi_image.bin') == 0:
+            output_text.insert("end", "Exported SPI_IMAGE_NAME = spi_image.bin\n", 'info')
         output_text.see("end")
         return mchp_family_config(topdir, board)
     else:
@@ -582,18 +585,16 @@ def find_bin_files(directory, bin_files):
     for root, dirs, files in os.walk(directory):
         for filename in files:
             if filename in bin_files:
-                bin = os.path.join(root, filename)
+                bin = os.path.abspath(os.path.join(root, filename))
                 break
     return bin
 
-def merge_bin(src1_bin, src2_bin, target_path):
+def merge_bin(src1_bin, src2_bin, target_bin):
     if not os.path.exists(src1_bin) or not os.path.exists(src2_bin):
         return -1, ' '
 
-    target_bin = os.path.join(target_path, 'combined.bin')
-
-    if os.path.exists(target_bin):
-        os.remove(target_bin)
+    if not os.path.exists(target_bin):
+        return -1, ' '
 
     with open(src1_bin, 'rb') as file1, open(src2_bin, 'rb') as file2:
         contents1 = file1.read()
@@ -607,7 +608,7 @@ def merge_bin(src1_bin, src2_bin, target_path):
 def run_command_flash():
     def get_rom_addr(board):
         def mec172x_family(board):
-            flash_bin = ['kcs.bin', 'spi_gen.bin']
+            flash_bin = ['spi_image.bin', 'ksc.bin']
             if 'evb' in board:
                 addr = 0
             else:
@@ -616,7 +617,7 @@ def run_command_flash():
             return addr, flash_bin
 
         def mec170x_family(board):
-            flash_bin = ['kcs.bin', 'spi_gen.bin']
+            flash_bin = ['spi_image.bin', 'ksc.bin']
             if 'evb' in board:
                 addr = 0
             else:
@@ -625,7 +626,7 @@ def run_command_flash():
             return addr, flash_bin
 
         def mec152x_family(board):
-            flash_bin = ['kcs.bin', 'spi_gen.bin']
+            flash_bin = ['spi_image.bin', 'ksc.bin']
             if 'evb' in board:
                 addr = 0
             else:
@@ -634,7 +635,7 @@ def run_command_flash():
             return addr, flash_bin
 
         def mec150x_family(board):
-            flash_bin = ['kcs.bin', 'spi_gen.bin']
+            flash_bin = ['spi_image.bin', 'ksc.bin']
             if 'evb' in board:
                 addr = 0
             else:
@@ -739,7 +740,7 @@ def run_command_flash():
             if not os.path.exists(read_bin):
                 return -1
 
-            err, bin = merge_bin(read_bin, bin, build_path)
+            err, bin = merge_bin(read_bin, bin, bin)
 
             if err:
                 return -1
@@ -750,8 +751,9 @@ def run_command_flash():
         err = write_flash(tool, bin, build_path)
 
         if os.path.exists(bk_bin) and os.path.exists(bin):
-            os.remove(bin)
-            shutil.copy(bk_bin, bin)
+            print('exist')
+            # os.remove(bin)
+            # shutil.copy(bk_bin, bin)
         if err:
             return -1
 
