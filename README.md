@@ -12,17 +12,12 @@ Zephyr RTOS project requirement tools should been installed
 
 1. Build source becomes debian package or executable file:
 
-    - unix:
+    - unix/window(or mouse click):
 
         ```bash
         python3 build.py
         ```
 
-    - window: (or by mouse click)
-
-        ```powershell
-        python3 build.py
-        ```
     `eczpehyr.deb`, `dist/eczephyr`, `dist/eczephyr.exe` been generated after success build.
 
       * _`eczephyr.deb` and `dist/eczephyr`: not generated in MS-DOS._
@@ -31,17 +26,12 @@ Zephyr RTOS project requirement tools should been installed
 
 2. Install debian package (Linux) or executable file (Window):
 
-    - unix:
+    - unix/window(or mouse click):
 
         ```bash
         python3 install.py
         ```
 
-    - window: (or mouse click)
-
-        ```powershell
-        python3 install.py
-        ```
 3. Process zephyr GUI:
 
     - unix:
@@ -49,13 +39,14 @@ Zephyr RTOS project requirement tools should been installed
         ```bash
         eczephyr gui
         ```
+
     - window:
 
       1. right-click mouse button
 
       2. select `eczephyr`
 
-        <img src="https://raw.githubusercontent.com/wiki/yimjiajun/zephyr_gui/image/eczephyr_cortext_menu.jpg" alt="eczephyr context menu display image" width="200"/>
+          <img src="https://raw.githubusercontent.com/wiki/yimjiajun/zephyr_gui/image/eczephyr_cortext_menu.jpg" alt="eczephyr context menu display image" width="200"/>
 
 ## Usage
 
@@ -63,8 +54,8 @@ Zephyr RTOS project requirement tools should been installed
 
 - Click **Download**:
 
-  <img src="https://raw.githubusercontent.com/wiki/yimjiajun/zephyr_gui/image/eczephyr_download.jpg" alt="eczephyr download" width="200"/>
+    <img src="https://raw.githubusercontent.com/wiki/yimjiajun/zephyr_gui/image/eczephyr_download.jpg" alt="eczephyr download" width="400"/>
 
   - Select Project to Download:
 
-    <img src="https://raw.githubusercontent.com/wiki/yimjiajun/zephyr_gui/image/eczephyr_select_to_download.jpg" alt="eczephyr download selection" width="200"/>
+      <img src="https://raw.githubusercontent.com/wiki/yimjiajun/zephyr_gui/image/eczephyr_select_to_download.jpg" alt="eczephyr download selection" width="400"/>
