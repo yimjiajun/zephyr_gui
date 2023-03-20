@@ -56,3 +56,15 @@ Zephyr RTOS project requirement tools should been installed
       2. select `eczephyr`
 
         <img src="https://raw.githubusercontent.com/wiki/yimjiajun/zephyr_gui/image/eczephyr_cortext_menu.jpg" alt="eczephyr context menu display image" width="200"/>
+
+## Usage
+
+1. Download Intel Open EC firmware
+
+- Click **Download**:
+
+  <img src="https://raw.githubusercontent.com/wiki/yimjiajun/zephyr_gui/image/eczephyr_download.jpg" alt="eczephyr download" width="200"/>
+
+  - Select Project to Download:
+
+    <img src="https://raw.githubusercontent.com/wiki/yimjiajun/zephyr_gui/image/eczephyr_select_to_download.jpg" alt="eczephyr download selection" width="200"/>
