@@ -120,7 +120,7 @@ function prj_patch_update {
 	local prj_app_name="$1"
 	local prj_workspace_dir="$2"
 	local prj_zephyr_kernal_dir="$3"
-	local prj_intel_zephyr_patch_path_from_zephyr_fork="../../${prj_app_name}/zephyr_patches/patches_v2_7.patch"
+	local prj_intel_zephyr_patch_path_from_zephyr_fork="../../${prj_app_name}/zephyr_patches/patches_v3_2.patch"
 
 	git -C ${prj_workspace_dir}/${prj_zephyr_kernal_dir} \
 		am ${prj_intel_zephyr_patch_path_from_zephyr_fork}
