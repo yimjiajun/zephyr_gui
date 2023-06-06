@@ -310,7 +310,7 @@ def west_workspace_init():
 
 def west_workspace_update():
     def update_intel_ec_zephyr_patch(patch_path, target_path):
-        patterns = [r'v2_(\d+)', r'v(\d+)']
+        patterns = [r'patches_v3_(\d+)']
         # Find all patch files in the current directory
         patch_path = os.path.join(patch_path, '*.patch')
         patches = glob.glob(patch_path)
