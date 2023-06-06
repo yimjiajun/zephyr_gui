@@ -2,6 +2,4 @@ package:eczephyr
 version:1.00
 architecture:all
 maintainer:Richard Yim
-Depends: python3.10 (>= 3.10.6-1~), python3-tk (>= 3.10.6-1~)
-Suggests: python3-doc (>= 3.10.6-1~22.04), python3-venv (>= 3.10.6-1~22.04)
 description: Zephyr Project RTOS Applications, CLI and GUI tools.

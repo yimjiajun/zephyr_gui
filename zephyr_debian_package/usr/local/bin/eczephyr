@@ -28,7 +28,7 @@ function command_check {
 
 		'gui')
 			shift
-			python3 ${lib_path}/gui.py
+			${lib_path}/gui
 			;;
 
 		*)
